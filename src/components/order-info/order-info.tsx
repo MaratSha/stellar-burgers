@@ -1,32 +1,54 @@
-import { FC, useMemo } from 'react';
+import { FC, useMemo, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { useSelector, useDispatch } from '../../services/store';
+
 import { Preloader } from '../ui/preloader';
 import { OrderInfoUI } from '../ui/order-info';
 import { TIngredient } from '@utils-types';
 
+import {
+  getOrderByNumber,
+  clearCurrentOrder
+} from '../../services/slices/order-slice';
+
+type TIngredientsWithCount = {
+  [key: string]: TIngredient & { count: number };
+};
+
 export const OrderInfo: FC = () => {
-  /** TODO: взять переменные orderData и ingredients из стора */
-  const orderData = {
-    createdAt: '',
-    ingredients: [],
-    _id: '',
-    status: '',
-    name: '',
-    updatedAt: 'string',
-    number: 0
-  };
+  const { number } = useParams<{ number: string }>();
+  const dispatch = useDispatch();
 
-  const ingredients: TIngredient[] = [];
+  // Получаем данные из хранилища
+  const orderData = useSelector((state) => state.order.currentOrder);
+  const ingredients: TIngredient[] = useSelector(
+    (state) => state.ingredients.ingredients
+  );
 
-  /* Готовим данные для отображения */
+  // Загружаем данные о заказе при монтировании
+  useEffect(() => {
+    if (number) {
+      dispatch(getOrderByNumber(Number(number)));
+    }
+
+    // Очищаем данные при размонтировании
+    return () => {
+      dispatch(clearCurrentOrder());
+    };
+  }, [number, dispatch]);
+
+  /**
+   * Подготавливаем данные для отображения:
+   * - группируем ингредиенты по ID с подсчетом количества
+   * - вычисляем общую стоимость
+   * - форматируем дату
+   */
   const orderInfo = useMemo(() => {
     if (!orderData || !ingredients.length) return null;
 
     const date = new Date(orderData.createdAt);
 
-    type TIngredientsWithCount = {
-      [key: string]: TIngredient & { count: number };
-    };
-
+    // Группируем ингредиенты и считаем их количество
     const ingredientsInfo = orderData.ingredients.reduce(
       (acc: TIngredientsWithCount, item) => {
         if (!acc[item]) {
@@ -40,12 +62,12 @@ export const OrderInfo: FC = () => {
         } else {
           acc[item].count++;
         }
-
         return acc;
       },
       {}
     );
 
+    // Общая стоимость заказа
     const total = Object.values(ingredientsInfo).reduce(
       (acc, item) => acc + item.price * item.count,
       0

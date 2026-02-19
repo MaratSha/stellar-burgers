@@ -1,25 +1,25 @@
 import React, { FC } from 'react';
-import { OrderStatusProps } from './type';
-import { OrderStatusUI } from '@ui';
 
+import { OrderStatusUI } from '@ui';
+import { OrderStatusProps } from './type';
+
+// Отображение статуса заказа на русском языке
 const statusText: { [key: string]: string } = {
   pending: 'Готовится',
   done: 'Выполнен',
   created: 'Создан'
 };
 
-export const OrderStatus: FC<OrderStatusProps> = ({ status }) => {
-  let textStyle = '';
-  switch (status) {
-    case 'pending':
-      textStyle = '#E52B1A';
-      break;
-    case 'done':
-      textStyle = '#00CCCC';
-      break;
-    default:
-      textStyle = '#F2F2F3';
-  }
+// Цвета для разных статусов
+const statusColors: { [key: string]: string } = {
+  pending: '#E52B1A', // красный
+  done: '#00CCCC', // бирюзовый
+  created: '#F2F2F3' // серый
+};
 
-  return <OrderStatusUI textStyle={textStyle} text={statusText[textStyle]} />;
+export const OrderStatus: FC<OrderStatusProps> = ({ status }) => {
+  // Получаем цвет для текущего статуса или цвет по умолчанию
+  const textStyle = statusColors[status] || statusColors.created;
+
+  return <OrderStatusUI textStyle={textStyle} text={statusText[status]} />;
 };
