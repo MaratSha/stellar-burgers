@@ -1,19 +1,13 @@
 import { FC, useMemo, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { useSelector, useDispatch } from '../../services/store';
-
 import { Preloader } from '../ui/preloader';
 import { OrderInfoUI } from '../ui/order-info';
 import { TIngredient } from '@utils-types';
-
+import { useSelector, useDispatch } from '../../services/store';
+import { useParams } from 'react-router-dom';
 import {
   getOrderByNumber,
   clearCurrentOrder
-} from '../../services/slices/order-slice';
-
-type TIngredientsWithCount = {
-  [key: string]: TIngredient & { count: number };
-};
+} from '../..//services/slices/order-slice';
 
 export const OrderInfo: FC = () => {
   const { number } = useParams<{ number: string }>();
@@ -48,7 +42,10 @@ export const OrderInfo: FC = () => {
 
     const date = new Date(orderData.createdAt);
 
-    // Группируем ингредиенты и считаем их количество
+    type TIngredientsWithCount = {
+      [key: string]: TIngredient & { count: number };
+    };
+
     const ingredientsInfo = orderData.ingredients.reduce(
       (acc: TIngredientsWithCount, item) => {
         if (!acc[item]) {

@@ -1,5 +1,4 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-
 import {
   getFeedsApi,
   getOrderByNumberApi,
@@ -8,7 +7,6 @@ import {
 } from '../../utils/burger-api';
 import { TOrder } from '../../utils/types';
 
-// ===== Типы =====
 type TCreateOrderState = {
   orderData: TOrder | null;
   orderNumber: number | null;
@@ -16,33 +14,27 @@ type TCreateOrderState = {
   error: string | null;
 };
 
-type TFeedOrdersState = {
+export type TFeedOrdersState = {
   orders: TOrder[];
   total: number;
   totalToday: number;
   currentOrder: TOrder | null;
 };
 
-type TOrderState = TCreateOrderState & TFeedOrdersState;
+export type TOrderState = TCreateOrderState & TFeedOrdersState;
 
-// ===== Начальное состояние =====
-const initialState: TOrderState = {
-  // Состояние создания заказа
+export const initialState: TOrderState = {
   orderData: null,
   orderNumber: null,
   loading: false,
   error: null,
 
-  // Состояние ленты заказов
   orders: [],
   total: 0,
   totalToday: 0,
   currentOrder: null
 };
 
-// ===== Асинхронные действия =====
-
-// Создание нового заказа
 export const createOrder = createAsyncThunk<
   TOrder,
   string[],
@@ -62,43 +54,36 @@ export const createOrder = createAsyncThunk<
   }
 });
 
-// Получение ленты заказов (все заказы)
 export const getFeeds = createAsyncThunk(
   'feeds',
   async () => await getFeedsApi()
 );
 
-// Получение заказов текущего пользователя
 export const getOrders = createAsyncThunk(
   'user/orders',
   async () => await getOrdersApi()
 );
 
-// Получение заказа по номеру
 export const getOrderByNumber = createAsyncThunk(
   'user/orderbyNumber',
   async (number: number) => await getOrderByNumberApi(number)
 );
 
-// ===== Слайс =====
-const orderSlice = createSlice({
+export const orderSlice = createSlice({
   name: 'order',
   initialState,
   reducers: {
-    // Очистка данных созданного заказа
     clearOrder: (state) => {
       state.orderData = null;
       state.orderNumber = null;
       state.error = null;
     },
-    // Очистка текущего просматриваемого заказа
     clearCurrentOrder: (state) => {
       state.currentOrder = null;
     }
   },
   extraReducers: (builder) => {
     builder
-      // ===== Создание заказа =====
       .addCase(createOrder.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -115,19 +100,16 @@ const orderSlice = createSlice({
           typeof payload === 'string' ? payload : 'Error creating order';
       })
 
-      // ===== Получение ленты заказов =====
       .addCase(getFeeds.fulfilled, (state, action) => {
         state.orders = action.payload.orders;
         state.total = action.payload.total;
         state.totalToday = action.payload.totalToday;
       })
 
-      // ===== Получение заказов пользователя =====
       .addCase(getOrders.fulfilled, (state, action) => {
         state.orders = action.payload;
       })
 
-      // ===== Получение заказа по номеру =====
       .addCase(getOrderByNumber.fulfilled, (state, action) => {
         if (action.payload.orders.length > 0) {
           state.currentOrder = action.payload.orders[0];
@@ -136,6 +118,5 @@ const orderSlice = createSlice({
   }
 });
 
-// ===== Экспорты =====
 export const { clearOrder, clearCurrentOrder } = orderSlice.actions;
 export default orderSlice.reducer;
